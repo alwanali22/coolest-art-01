@@ -1,1 +1,1 @@
-"The Fox Beneath the Aurora", a red fox sitting in a snowy pine forest at night, gazing up at sweeping green and violet aurora ribbons across a deep indigo sky.
+"The Astronomer of the Dunes", a tiny cloaked astronomer riding a giant elephant across moonlit desert dunes at night, brass telescope raised to the stars, a warm paper lantern glowing from the saddle under a deep indigo starry sky.
