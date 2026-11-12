@@ -1,73 +1,55 @@
-# Entry: The Star Shepherd; Subject: A young cloaked child guiding luminous celestial bodies across a cloud cliff edge under a crescent moon, managed by a staff.
 """
-A program to copy art.jpg to entry.png in the output directory.
-Validates the JPEG header and ensures deterministic behavior.
+This program copies art.jpg to an output directory and is deterministic.
 """
-
 import os
 import sys
 import hashlib
+from pathlib import Path
 
-def calculate_sha256(filepath):
-    """Calculates the SHA256 hash of a file."""
-    sha256 = hashlib.sha256()
+def get_sha256(filepath):
+    """Calculate the SHA256 hash of a file."""
+    hasher = hashlib.sha256()
     with open(filepath, 'rb') as f:
-        while True:
-            data = f.read(8192)
-            if not data:
-                break
-            sha256.update(data)
-    return sha256.hexdigest()
+        while chunk := f.read(8192):
+            hasher.update(chunk)
+    return hasher.hexdigest()
 
-def main():
-    # 1. Resolve source file path
-    src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'art.jpg')
-    
-    # 2. Validate source file
-    if not os.path.exists(src_path):
-        print(f"Error: {src_path} not found.")
+# Resolve path
+script_dir = Path(__file__).resolve().parent
+art_path = script_dir / 'art.jpg'
+
+# Validate existence and magic bytes
+if not art_path.exists():
+    print(f"Error: Source file {art_path} not found.", file=sys.stderr)
+    sys.exit(1)
+
+if art_path.stat().st_size == 0:
+    print(f"Error: Source file {art_path} is empty.", file=sys.stderr)
+    sys.exit(1)
+
+with open(art_path, 'rb') as f:
+    if f.read(2) != b'\xff\xd8':
+        print(f"Error: File {art_path} is not a JPEG.", file=sys.stderr)
         sys.exit(1)
-        
-    with open(src_path, 'rb') as f:
-        magic = f.read(2)
-        if magic != b'\xff\xd8':
-            print("Error: Source file does not have valid JPEG magic bytes.")
-            sys.exit(1)
 
-    # 3. Determine output directory and path
-    output_dir = os.environ.get('MAKEFUN_OUTPUT_DIR', '/output')
-    
-    # Safety: If we cannot write to /output, try a local 'output'
-    try:
-        os.makedirs(output_dir, exist_ok=True)
-    except OSError:
-        # Fallback for testing if /output is not writable
-        output_dir = 'output'
-        os.makedirs(output_dir, exist_ok=True)
-        
-    output_path = os.path.join(output_dir, 'entry.png')
-    
-    # 4. Copy file
-    with open(src_path, 'rb') as src, open(output_path, 'wb') as dst:
-        dst.write(src.read())
-        
-    # 5. Verify and print details
-    src_hash = calculate_sha256(src_path)
-    out_hash = calculate_sha256(output_path)
-    
-    # Re-reading the written file to calculate a hash provides a stronger
-    # guarantee of integrity than merely checking size, as it detects
-    # potential data corruption or incomplete writes that could result 
-    # in the correct file size but incorrect content.
-    if src_hash != out_hash:
-        print(f"Error: Integrity check failed! Source hash: {src_hash}, Output hash: {out_hash}")
-        sys.exit(1)
-        
-    out_size = os.path.getsize(output_path)
-    
-    print(f"Output Path: {output_path}")
-    print(f"Byte Count: {out_size}")
-    print(f"SHA256: {out_hash}")
+# Output dir
+output_dir = Path(os.environ.get('MAKEFUN_OUTPUT_DIR', '/output'))
+output_dir.mkdir(parents=True, exist_ok=True)
+output_path = output_dir / 'entry.png'
 
-if __name__ == '__main__':
-    main()
+# Copy
+with open(art_path, 'rb') as src, open(output_path, 'wb') as dst:
+    dst.write(src.read())
+
+# Verify that the destination file's integrity matches the source file's integrity using SHA256 hashing to ensure a successful, bit-perfect copy.
+if art_path.stat().st_size != output_path.stat().st_size:
+    print(f"Error: Size mismatch between {art_path} and {output_path}.", file=sys.stderr)
+    sys.exit(1)
+
+if get_sha256(art_path) != get_sha256(output_path):
+    print(f"Error: SHA256 mismatch between {art_path} and {output_path}.", file=sys.stderr)
+    sys.exit(1)
+
+print(f"Output: {output_path}")
+print(f"Size: {output_path.stat().st_size}")
+print(f"SHA256: {get_sha256(output_path)}")
