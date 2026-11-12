@@ -1,1 +1,1 @@
-"The Astronomer of the Dunes", a tiny cloaked astronomer riding a giant elephant across moonlit desert dunes at night, brass telescope raised to the stars, a warm paper lantern glowing from the saddle under a deep indigo starry sky.
+"The Lantern Tortoise", a colossal ancient tortoise carrying a tiny lantern-lit village on its shell, walking through a misty dark forest at dusk under a huge full moon, fireflies drifting, one big paper lantern glowing warm above the village. The image is a real 3D render made in Blender.
